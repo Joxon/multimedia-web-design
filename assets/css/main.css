@@ -3118,6 +3118,7 @@ body.is-ie .spotlights > section {
   -ms-justify-content: center;
   justify-content: center;
   width: 50em;
+  flex: 1;
   -ms-flex: 1;
 }
 
