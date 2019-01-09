@@ -168,6 +168,10 @@
     }
   }
 
+  // 必须是字符串，不能是对象！
+  const ENCRYPTED_TOKEN =
+    '{"iv":"wwZja1kyc6vnKMP+sXaRdg==","v":1,"iter":10000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"MfCsdtUbCOQ=","ct":"ZMgE9geLS8jfirkqE4pK6R1K6slvcLwC2Vo2zYeKGW0Yq9sOY6ez5Utnte9MDQSl"}';
+
   const input = $('#input-upload');
   const button = $('#button-upload');
   const imgCap = $('#img-caption');
@@ -198,8 +202,21 @@
     input.prop('disabled', true);
     imgCap.html('正在上传...');
 
+    let pwd = prompt('请输入上传密码：');
+    let token;
+    try {
+      token = sjcl.decrypt(pwd, ENCRYPTED_TOKEN);
+    } catch (e) {
+      alert('密码不正确！' + e);
+      imgCap.html('密码不正确，请重试。');
+      button.prop('disabled', false);
+      input.prop('disabled', false);
+      return;
+    }
+
+    imgCap.html('密码正确。正在上传...');
     let api = new GithubAPI({
-      token: ''
+      token: token
     });
     api.setRepo('joxon', 'multimedia-web-design');
     api

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>SJCL Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+  <div id="wrapper">
+    <p><label for="ind">Decrypted string: <input id="ind" type="text"></label></p>
+    <p><label for="inp">Password: <input id="inp" type="text"></label></p>
+    <p><label for="ine">Encrypted JSON: <input id="ine" type="text"></label></p>
+    <textarea name="out" id="out"></textarea>
+  </div>
+
+  <style>
+    #wrapper {
+      width: 800px;
+    }
+
+    #wrapper * {
+      width: 100%;
+    }
+  </style>
+
+  <script src="assets/js/sjcl.js"></script>
+  <script>
+    // SJCL is easy to use: simply run
+    // sjcl.encrypt("password", "data")
+    // to encrypt data, or
+    // sjcl.decrypt("password", "encrypted-data")
+
+    const out = document.getElementById('out');
+
+    const ind = document.getElementById('ind');
+    const inp = document.getElementById('inp');
+    const ine = document.getElementById('ine');
+
+    let decrypted = ind.value;
+    let password = inp.value;
+    let encrypted = ine.value;
+
+    ind.addEventListener('input', () => {
+      // this == window
+      encrypted = '';
+      ine.value = '';
+
+      password = inp.value;
+      decrypted = ind.value;
+      out.value = (sjcl.encrypt(password, decrypted));
+    })
+
+    inp.addEventListener('input', () => {
+      password = inp.value;
+      try {
+        if (ine.value == '') {
+          out.value = sjcl.encrypt(password, decrypted);
+        } else if (ind.value == '') {
+          out.value = sjcl.decrypt(password, encrypted);
+        }
+      } catch (e) {
+        out.value = e;
+      }
+
+    })
+
+    ine.addEventListener('input', () => {
+      decrypted = '';
+      ind.value = '';
+
+      password = inp.value;
+      encrypted = ine.value;
+      try {
+        out.value = (sjcl.decrypt(password, encrypted));
+      } catch (e) {
+        out.value = e;
+      }
+    })
+
+
+  </script>
+</body>
+
+</html>
