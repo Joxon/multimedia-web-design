@@ -40,12 +40,22 @@
 				<span class="image fit"><img src="images/exp4.png" alt="" /></span>
 				<p>实验要求：个人页面开发，包含个人基本信息，整个课程的各次实验信息，并实现媒体文件上传、下载功能实现。</p>
 
-				<div id="upload" style="text-align:center;border:5px dashed blueviolet;margin: 30px;padding: 30px;">
-					<span class="image fit"><img src="exp4/upload.jpg" alt="" /></span>
-					<input type="file" accept=".jpg" />
+				<div style="text-align:center;border:5px dashed blueviolet;margin: 30px;padding: 30px;">
+					<figure>
+						<span class="image fit"><img src="exp4/upload.jpg" alt="" /></span>
+						<figcaption>当前存放于服务器的图片：upload.jpg</figcaption>
+					</figure>
+
 					<br>
+
+					<input id="input-upload" type="file" accept=".jpg, .jpeg" />
+					<figure>
+						<span class="image fit"><img id="img-selected" src="" alt="" /></span>
+						<figcaption id="img-caption"></figcaption>
+					</figure>
+
 					<!-- <label for="file">选择文件</label> -->
-					<button>上传JPG文件</button>
+					<button id="button-upload">上传JPG文件</button>
 				</div>
 
 				<h2>功能实现情况：</h2>
@@ -99,6 +109,8 @@
 	<script src="assets/js/util.js"></script>
 	<script src="assets/js/main.js"></script>
 
+	<script src="assets/js/GitHub.bundle.min.js"></script>
+	<script src="assets/js/exp4-commit.js"></script>
 </body>
 
 </html>
