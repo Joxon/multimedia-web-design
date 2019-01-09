@@ -121,6 +121,7 @@
      * @return {Promise}
      */
     function createFile(fileInfo) {
+      // 此处repo是Github.js的API，createBlob需要魔改
       return repo.createBlob(fileInfo.content).then(blob => {
         filesToCommit.push({
           sha: blob.data.sha,
@@ -168,6 +169,30 @@
     }
   }
 
+  function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+      var byteNumbers = new Array(slice.length);
+      for (var i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, { type: contentType });
+    return blob;
+  }
+
   // 必须是字符串，不能是对象！
   const ENCRYPTED_TOKEN =
     '{"iv":"wwZja1kyc6vnKMP+sXaRdg==","v":1,"iter":10000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"MfCsdtUbCOQ=","ct":"ZMgE9geLS8jfirkqE4pK6R1K6slvcLwC2Vo2zYeKGW0Yq9sOY6ez5Utnte9MDQSl"}';
@@ -182,9 +207,15 @@
 
   let imgFile = null;
   let imgBase64 = null;
+  let imgBase64Data = null;
+  let imgBlob = null;
+  const IMG_TYPE = 'image/jpg';
   const reader = new FileReader();
   reader.onload = () => {
     imgBase64 = reader.result;
+    imgBase64Data = imgBase64.split(',')[1];
+    imgBlob = b64toBlob(imgBase64Data, IMG_TYPE, 512);
+
     imgSel.prop('src', imgBase64);
     imgCap.html('加载完成，请点击按钮开始上传');
   };
@@ -193,6 +224,12 @@
     button.prop('disabled', false);
     imgCap.html('图片加载中...');
     imgFile = input.prop('files')[0];
+    if (imgFile.size > 1048576) {
+      // 不允许上传大于 1MB 的文件
+      imgCap.html('不允许上传大于1MB的图片，请重试');
+      button.prop('disabled', true);
+      return;
+    }
     reader.readAsDataURL(imgFile);
     console.log(imgFile);
   });
@@ -202,7 +239,7 @@
     input.prop('disabled', true);
     imgCap.html('正在上传...');
 
-    let pwd = prompt('请输入上传密码：');
+    let pwd = prompt('为防止API被滥用，请输入上传密码：');
     let token;
     try {
       token = sjcl.decrypt(pwd, ENCRYPTED_TOKEN);
@@ -214,24 +251,22 @@
       return;
     }
 
-    imgCap.html('密码正确。正在上传...');
+    imgCap.html('密码正确。准备上传...');
     let api = new GithubAPI({
       token: token
     });
     api.setRepo('joxon', 'multimedia-web-design');
     api
       .setBranch('gh-pages')
-      .then(
-        () => {
-          console.log('Uploading ' + imgFile.name);
-          api.pushFiles(`uploaded ${imgFile.name} to exp4/upload.jpg`, [
-            { content: imgBase64, path: 'exp4/upload.jpg' }
-          ]);
-        },
-        err => {
-          console.error(err);
-        }
-      )
+      .then(() => {
+        imgCap.html('正在上传...');
+        api.pushFiles(`uploaded ${imgFile.name} to exp4/upload.jpg`, [
+          {
+            content: { content: imgBase64Data, encoding: 'base64' },
+            path: 'exp4/upload.jpg'
+          }
+        ]);
+      })
       .then(() => {
         imgCap.html('上传成功！');
       });
