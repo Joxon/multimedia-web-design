@@ -169,109 +169,104 @@
     }
   }
 
-  function b64toBlob(b64Data, contentType, sliceSize) {
-    contentType = contentType || '';
-    sliceSize = sliceSize || 512;
-
-    var byteCharacters = atob(b64Data);
-    var byteArrays = [];
-
-    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-      var byteNumbers = new Array(slice.length);
-      for (var i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-
-      var byteArray = new Uint8Array(byteNumbers);
-
-      byteArrays.push(byteArray);
-    }
-
-    var blob = new Blob(byteArrays, { type: contentType });
-    return blob;
-  }
-
   // 必须是字符串，不能是对象！
+  // SJCL自带JSON Parse
   const ENCRYPTED_TOKEN =
     '{"iv":"wwZja1kyc6vnKMP+sXaRdg==","v":1,"iter":10000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"MfCsdtUbCOQ=","ct":"ZMgE9geLS8jfirkqE4pK6R1K6slvcLwC2Vo2zYeKGW0Yq9sOY6ez5Utnte9MDQSl"}';
 
-  const input = $('#input-upload');
-  const button = $('#button-upload');
+  const inputFile = $('#input-file');
+  const inputLabel = $('#input-label');
+  const buttonUpload = $('#button-upload');
   const imgCap = $('#img-caption');
   const imgSel = $('#img-selected');
 
   imgCap.html('请选择图片');
-  button.prop('disabled', true);
+  buttonUpload.prop('disabled', true);
+
+  // let imgBlob = null;
+  // const IMG_TYPE = 'image/jpg';
 
   let imgFile = null;
   let imgBase64 = null;
   let imgBase64Data = null;
-  let imgBlob = null;
-  const IMG_TYPE = 'image/jpg';
   const reader = new FileReader();
   reader.onload = () => {
     imgBase64 = reader.result;
     imgBase64Data = imgBase64.split(',')[1];
-    imgBlob = b64toBlob(imgBase64Data, IMG_TYPE, 512);
+    // imgBlob = b64toBlob(imgBase64Data, IMG_TYPE, 512);
 
     imgSel.prop('src', imgBase64);
     imgCap.html('加载完成，请点击按钮开始上传');
   };
 
-  input.change(() => {
-    button.prop('disabled', false);
+  inputFile.change(() => {
+    buttonUpload.prop('disabled', false);
     imgCap.html('图片加载中...');
-    imgFile = input.prop('files')[0];
-    if (imgFile.size > 1048576) {
-      // 不允许上传大于 1MB 的文件
+    imgFile = inputFile.prop('files')[0];
+
+    const ONE_MB = 1048576;
+    if (imgFile.size > ONE_MB) {
       imgCap.html('不允许上传大于1MB的图片，请重试');
-      button.prop('disabled', true);
-      return;
+      buttonUpload.prop('disabled', true);
+    } else {
+      reader.readAsDataURL(imgFile);
     }
-    reader.readAsDataURL(imgFile);
-    console.log(imgFile);
   });
 
-  button.click(() => {
-    button.prop('disabled', true);
-    input.prop('disabled', true);
+  buttonUpload.click(() => {
+    buttonUpload.prop('disabled', true);
+    inputFile.prop('disabled', true);
     imgCap.html('正在上传...');
 
     let pwd = prompt('为防止API被滥用，请输入上传密码：');
     let token;
+
     try {
       token = sjcl.decrypt(pwd, ENCRYPTED_TOKEN);
     } catch (e) {
-      alert('密码不正确！' + e);
       imgCap.html('密码不正确，请重试。');
-      button.prop('disabled', false);
-      input.prop('disabled', false);
+      alert('密码不正确！' + e);
+      buttonUpload.prop('disabled', false);
+      inputFile.prop('disabled', false);
       return;
     }
 
     imgCap.html('密码正确。准备上传...');
-    let api = new GithubAPI({
-      token: token
-    });
+
+    let api = new GithubAPI({ token: token });
     api.setRepo('joxon', 'multimedia-web-design');
     api
       .setBranch('gh-pages')
       .then(() => {
         imgCap.html('正在上传...');
+        // 重点：Github.js不能正确处理base64数据
+        // 通过魔改里面的createBlob函数，修改postBody
+        // 原：
+        // postBody = this._getContentObject(content);
+        // 新：
+        // var postBody;
+        // if (typeof content === 'object') {
+        //   postBody = content;
+        // } else {
+        //   postBody = this._getContentObject(content);
+        // }
+        // 下面直接传入object，不要调用_getContentObject
+        let contentObj = { content: imgBase64Data, encoding: 'base64' };
         api.pushFiles(`uploaded ${imgFile.name} to exp4/upload.jpg`, [
           {
-            content: { content: imgBase64Data, encoding: 'base64' },
+            content: contentObj,
             path: 'exp4/upload.jpg'
           }
         ]);
       })
       .then(() => {
         imgCap.html('上传成功！');
-      });
+      })
+      .catch(e =>
+        console.error(`Error occured when pushing ${imgFile.name}: ${e}`)
+      );
 
-    button.prop('disabled', false);
-    input.prop('disabled', false);
+    buttonUpload.prop('disabled', false);
+    inputFile.prop('disabled', false);
   });
 })(jQuery);

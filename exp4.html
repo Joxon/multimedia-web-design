@@ -7,7 +7,7 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="assets/css/main.css" />
-	<!-- <link rel="stylesheet" href="assets/css/exp4-file.css"> -->
+	<link rel="stylesheet" href="assets/css/exp4.file.css">
 	<noscript>
 		<link rel="stylesheet" href="assets/css/noscript.css" />
 	</noscript>
@@ -48,13 +48,14 @@
 
 					<br>
 
-					<input id="input-upload" type="file" accept=".jpg, .jpeg" />
+					<input id="input-file" name="input-file" type="file" accept=".jpg, .jpeg" />
+					<label id="input-label" for="input-file">选择文件</label>
+
 					<figure>
 						<span class="image fit"><img id="img-selected" src="" alt="" /></span>
 						<figcaption id="img-caption"></figcaption>
 					</figure>
 
-					<!-- <label for="file">选择文件</label> -->
 					<button id="button-upload">上传JPG文件</button>
 				</div>
 
@@ -112,7 +113,7 @@
 
 	<script src="assets/js/GitHub.bundle.js"></script>
 	<script src="assets/js/sjcl.js"></script>
-	<script src="assets/js/exp4-commit.js"></script>
+	<script src="assets/js/exp4.commit.js"></script>
 </body>
 
 </html>

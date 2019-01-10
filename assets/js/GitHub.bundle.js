@@ -2711,7 +2711,7 @@
                     //   content: '',
                     //   encoding: ''
                     // };
-                    let postBody;
+                    var postBody;
                     if (typeof content === 'object') {
                       postBody = content;
                     } else {
