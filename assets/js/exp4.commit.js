@@ -180,7 +180,7 @@
   const imgCap = $('#img-caption');
   const imgSel = $('#img-selected');
 
-  imgCap.html('请选择图片');
+  imgCap.html('请选择小于1MB的JPG图片');
   buttonUpload.prop('disabled', true);
 
   // let imgBlob = null;
@@ -260,7 +260,9 @@
         ]);
       })
       .then(() => {
-        imgCap.html('上传成功！');
+        imgCap.html(
+          '上传成功！由于GitHub Pages部署需要时间，网页图片可能不会立即更新。点击“查看原图”或“查看历史”可以立即看到效果。'
+        );
       })
       .catch(e =>
         console.error(`Error occured when pushing ${imgFile.name}: ${e}`)
